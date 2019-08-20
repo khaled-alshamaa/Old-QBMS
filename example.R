@@ -1,48 +1,57 @@
 # Name:     example.R
 # Purpose:  Example set of function calls to query and retrieve data from BMS in use case scenario
 # Author:   Khaled Al-Shamaa <k.el-shamaa@cgiar.org>
-# Version:  0.1
+# Version:  0.2
 # Revision: v0.1 - 24 Jul 2019 - initial version
+#           v0.2 - 20 Aug 2019 - update function calls to reflect the new names
 # License:  GPLv3
 
 # include and load required libraries
 source("qbms.R")
 
 # config your BMS connection
-qbmsConfig$server <- "bms.icarda.org"
+qbms_config$server <- "bms.icarda.org"
 
 # if you are not connecting BMS server using SSL layer,
 # then comment the following two lines 
-qbmsConfig$protocol <- "https://"
-qbmsConfig$port <- 18443
+qbms_config$protocol <- "https://"
+qbms_config$port <- 18443
 
-# login using your BMS account
-qbmsLogin()
+# login using your BMS account (interactive mode)
+# You can pass BMS username and password as parameters (batch mode)
+login_bms()
 
 # list supported crops in the bms server
-listCrops()
-setCrop("Tutorial1")
+list_crops()
+
+set_crop("Tutorial1")
 
 # list existing breeding programs
-listPrograms()
+list_programs()
+
 # select a breeding program by name
-setProgram("Training Breeding Program")
+set_program("Training Breeding Program")
 
 # list all studies/trials in the selected program
-listTrials()
-listTrials(2017)
+list_trials()
+list_trials(2017)
+
 # select a specific study/trial by name
-setTrial("CIDTN-2016")
+set_trial("CIDTN-2016")
+
+# get observation variable ontology
+ontology <- get_trial_obs_ontology()
 
 # list all environments/locations in the selected study/trial
-listStudies()
-# select a specific environment/location dataset
-setStudy("FLRP")
+list_studies()
 
-# retrive general information, data, and germplasm list of the selected environment/location
-info <- getStudyInfo()
-data <- getStudyData()
-germplasm <- getGermplasmList()
+# select a specific environment/location dataset
+set_study("FLRP")
+
+# retrieve general information, data, and germplasm list of the selected environment/location
+info <- get_study_info()
+data <- get_study_data()
+germplasm <- get_germplasm_list()
 
 # retrive multi-environment trial data
-MET <- getTrialData()
+MET <- get_trial_data()
