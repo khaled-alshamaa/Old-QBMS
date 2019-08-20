@@ -524,36 +524,3 @@ get_trial_obs_ontology <- function() {
   
   return(study_ontology)
 }
-
-GetGermplasmList <- function(germplasmName) {
-  #################################################
-  #qbms_config$server <- "34.226.132.187"
-  #qbms_config$port     <- 48080
-  #qbms_config$protocol <- "http://"
-  
-  #LoginBMS("khaled", "icarda")
-
-  #SetCrop("wheat")
-  #SetProgram("Wheat Example Program")
-  
-  #germplasmName <- "AAR"
-  
-  # https://github.com/plantbreeding/API/blob/V1.2/Specification/Phenotypes/PhenotypesSearch_POST.md
-  myUrl <- paste0(qbms_config$base_url, "/germplasmList/", 
-                  qbms_config$crop, "/search?q=", germplasmName)
-  
-  response <- GET(url = myUrl, 
-                  add_headers("X-Auth-Token" = qbms_config$con$token))
-  
-  germplasmLists <- fromJSON(content(response, as = "text"))
-  
-  for (listId in germplasmLists$listId) {
-    print(listId)
-    # get the list of trials where this germplasm list has been used
-    # for each trial
-    #   get MET dataset
-    #   subset by GID or germplasmName
-    #   rbind from all trials involved
-  }
-  return ()
-}
