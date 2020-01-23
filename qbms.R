@@ -30,7 +30,6 @@
 if (!require(httr)) install.packages("httr")
 if (!require(tcltk)) install.packages("tcltk")
 if (!require(jsonlite)) install.packages("jsonlite")
-if (!require(data.table)) install.packages("data.table")
 if (!require(dplyr)) install.packages("dplyr")
 
 # Configure BMS server settings
@@ -70,7 +69,7 @@ brapi_get_call <- function(call_url){
   result_object <- fromJSON(content(response, as = "text"))
   result_info   <- result_object$result
   
-  if (result_object$metadata$pagination$totalPages > 1) {
+  if (result_object$metadata$pagination$totalPages > 1 && is.null(result_object$errors)) {
     last_page <- result_object$metadata$pagination$totalPages - 1
 
     pb <- txtProgressBar(min = 1, max = last_page, style = 3)
@@ -149,8 +148,7 @@ get_login_details <- function() {
 #' @author K. Al-Shamaa, \email{k.el-shamaa@cgiar.org}
 
 login_bms <- function(username = NULL, password = NULL) {
-  qbms_config$base_url <<- paste0(qbms_config$protocol, qbms_config$server, ":", 
-                                  qbms_config$port, "/", qbms_config$path)
+  qbms_config$base_url <<- paste0(qbms_config$protocol, qbms_config$server, ":", qbms_config$port, "/", qbms_config$path)
   
   if (is.null(username) || is.null(password)) {
     credentials <- get_login_details()
@@ -181,9 +179,7 @@ login_bms <- function(username = NULL, password = NULL) {
 
 list_crops <- function() {
   if (is.null(qbms_state$token)) {
-    stop(paste("No BMS server has been connected yet!", 
-               "You have to connect a BMS server first",
-               "using the `bms_login()` function"))
+    stop("No BMS server has been connected yet! You have to connect a BMS server first using the `bms_login()` function")
   }
   
   call_url <- paste0(qbms_config$base_url, "/brapi/v1/crops")
@@ -207,13 +203,10 @@ set_crop <- function(crop_name) {
   valid_crops <- list_crops()
   
   if (!crop_name %in% valid_crops) {
-    stop(paste("Your crop name is not supported in this connected BMS server!",
-         "You may use the `list_crops()` function to check the available crops"))
+    stop("Your crop name is not supported in this connected BMS server! You may use the `list_crops()` function to check the available crops")
   }
   
   qbms_config$crop <<- crop_name
-  
-  #qbms_config$con$crop <<- qbms_config$crop
 }
 
 
@@ -230,15 +223,11 @@ set_crop <- function(crop_name) {
 
 list_programs <- function() {
   if (is.null(qbms_state$token)) {
-    stop(paste("No BMS server has been connected yet!", 
-               "You have to connect a BMS server first",
-               "using the `bms_login()` function"))
+    stop("No BMS server has been connected yet! You have to connect a BMS server first using the `bms_login()` function")
   }
   
   if (is.null(qbms_config$crop)) {
-    stop(paste("No crop has been selected yet!",
-               "You have to set your crop first using",
-               "the `set_crop()` function"))
+    stop("No crop has been selected yet! You have to set your crop first using the `set_crop()` function")
   }
   
   call_url <- paste0(qbms_config$base_url, "/", qbms_config$crop, "/brapi/v1/programs")
@@ -264,9 +253,7 @@ set_program <- function(program_name) {
   valid_programs <- list_programs()
   
   if (!program_name %in% valid_programs$name) {
-    stop(paste("Your breeding program name is not exists in this crop database!", 
-               "You may use the `list_programs()` function",
-               "to check the available breeding programs"))
+    stop("Your breeding program name is not exists in this crop database! You may use the `list_programs()` function to check the available breeding programs")
   }
 
   call_url <- paste0(qbms_config$base_url, "/", qbms_config$crop, "/brapi/v1/programs")
@@ -316,9 +303,7 @@ get_program_trials <- function() {
 
 list_trials <- function(year = NULL) {
   if (is.null(qbms_state$program_db_id)) {
-    stop(paste("No breeding program has been selected yet!",
-               "You have to set your breeding program first using",
-               "the `set_program()` function"))
+    stop("No breeding program has been selected yet! You have to set your breeding program first using the `set_program()` function")
   }
   
   bms_trials <- get_program_trials()
@@ -361,9 +346,7 @@ set_trial <- function(trial_name) {
   valid_trials <- list_trials()
   
   if (!trial_name %in% valid_trials$trialName) {
-    stop(paste("Your trial name is not exists in this breeding program!", 
-               "You may use the `list_trials()` function",
-               "to check the available trials"))
+    stop("Your trial name is not exists in this breeding program!  You may use the `list_trials()` function to check the available trials")
   }
   
   bms_trials <- get_program_trials()
@@ -386,9 +369,7 @@ set_trial <- function(trial_name) {
 
 list_studies <- function() {
   if (is.null(qbms_state$trial_db_id)) {
-    stop(paste("No trial has been selected yet!",
-               "You have to set your trial first using",
-               "the `set_trial()` function"))
+    stop("No trial has been selected yet! You have to set your trial first using the `set_trial()` function")
   }
   
   bms_trials <- get_program_trials()
@@ -416,9 +397,7 @@ set_study <- function(location_name) {
   valid_studies <- list_studies()
   
   if (!location_name %in% valid_studies) {
-    stop(paste("Your location name is not exists in this trial!", 
-               "You may use the `list_studies()` function",
-               "to check the available study location names"))
+    stop("Your location name is not exists in this trial! You may use the `list_studies()` function to check the available study location names")
   }
   
   bms_trials <- get_program_trials()
@@ -445,9 +424,7 @@ set_study <- function(location_name) {
 
 get_study_info <- function() {
   if (is.null(qbms_state$study_db_id)) {
-    stop(paste("No study has been selected yet!",
-               "You have to set your study first using",
-               "the `set_study()` function"))
+    stop("No study has been selected yet! You have to set your study first using the `set_study()` function")
   }
   
   # broken in BMS ver 13, and bug fixed in BMS ver 14
@@ -475,9 +452,7 @@ get_study_info <- function() {
 
 get_study_data <- function() {
   if (is.null(qbms_state$study_db_id)) {
-    stop(paste("No study has been selected yet!",
-               "You have to set your study first using",
-               "the `set_study()` function"))
+    stop("No study has been selected yet! You have to set your study first using the `set_study()` function")
   }
 
   crop_url <- paste0(qbms_config$base_url, "/", qbms_config$crop, "/brapi/v1")
@@ -505,9 +480,7 @@ get_study_data <- function() {
 
 get_germplasm_list <- function() {
   if (is.null(qbms_state$trial_db_id)) {
-    stop(paste("No trial has been selected yet!",
-               "You have to set your trial first using",
-               "the `set_trial()` function"))
+    stop("No trial has been selected yet! You have to set your trial first using the `set_trial()` function")
   }
   
   # replace the API call by the following BrAPI once implemented in BMS
@@ -523,7 +496,6 @@ get_germplasm_list <- function() {
   #crop_url <- paste0(qbms_config$base_url, "/", qbms_config$crop, "/brapi/v1")
   #call_url <- paste0(crop_url, "/studies/", qbms_state$study_db_id, "/germplasm")
   #germplasm_list <- brapi_get_call(call_url)
-  
   
   return(germplasm_list)
 }
