@@ -4,6 +4,7 @@
 # Version:  0.2
 # Revision: v0.1 - 24 Jul 2019 - initial version
 #           v0.2 - 20 Aug 2019 - update function calls to reflect the new names
+#           v0.3 - ?? Feb 2019 - Introduce new functionalities of MET and germplasm observations
 # License:  GPLv3
 
 # include and load required libraries
@@ -55,3 +56,6 @@ germplasm <- get_germplasm_list()
 
 # retrive multi-environment trial data
 MET <- get_trial_data()
+
+# retrive observations data of a given germplasm aggregated from all trials
+germplasm_observations <- get_germplasm_data("FLIP10-3C")
