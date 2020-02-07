@@ -426,15 +426,12 @@ get_study_info <- function() {
   if (is.null(qbms_state$study_db_id)) {
     stop("No study has been selected yet! You have to set your study first using the `set_study()` function")
   }
-  
-  # broken in BMS ver 13, and bug fixed in BMS ver 14
-  # https://ibplatform.atlassian.net/servicedesk/customer/portal/4/IBPS-602
-  # study_info <- ba_studies_details(qbms_config$con, rclass = "data.frame", studyDbId = qbms_state$study_db_id)
 
   crop_url <- paste0(qbms_config$base_url, "/", qbms_config$crop, "/brapi/v1")
   call_url <- paste0(crop_url, "/studies/", qbms_state$study_db_id)
   
   study_info <- brapi_get_call(call_url)
+  study_info <- as.data.frame(do.call(c, unlist(study_info, recursive=FALSE)))
   
   return(study_info)
 }
@@ -483,19 +480,11 @@ get_germplasm_list <- function() {
     stop("No trial has been selected yet! You have to set your trial first using the `set_trial()` function")
   }
   
-  # replace the API call by the following BrAPI once implemented in BMS
-  # https://github.com/plantbreeding/API/blob/V1.2/Specification/Studies/Studies_Germplasm_GET.md
-  #
-  # BMS implementation for this BrAPI call is coming in version 14
-  # https://github.com/plantbreeding/API/blob/master/Specification/Studies/Studies_StudyDbId_Germplasm_GET.yaml
+  crop_url <- paste0(qbms_config$base_url, "/", qbms_config$crop, "/brapi/v1")
+  call_url <- paste0(crop_url, "/studies/", qbms_state$study_db_id, "/germplasm")
 
-  my_url <- paste0(qbms_config$base_url, "/study/", qbms_config$crop, "/", qbms_state$trial_db_id, "/germplasm")
-  response <- GET(url = my_url, add_headers("X-Auth-Token" = qbms_state$token))
-  germplasm_list <- fromJSON(content(response, as = "text"))
-  
-  #crop_url <- paste0(qbms_config$base_url, "/", qbms_config$crop, "/brapi/v1")
-  #call_url <- paste0(crop_url, "/studies/", qbms_state$study_db_id, "/germplasm")
-  #germplasm_list <- brapi_get_call(call_url)
+  germplasms     <- brapi_get_call(call_url)
+  germplasm_list <- as.data.frame(germplasms$data)
   
   return(germplasm_list)
 }
