@@ -13,16 +13,12 @@
 #                * Add basic error handling to the functions.
 #                * Add a function to retrieve the traits ontology of a trial.
 #
-#           v0.3 - ?? Feb 2020
+#           v0.3 -  2 Jun 2020
 #                * Call BrAPI directly (i.e. not required "CIP-RIU/brapi" from GitHub anymore).
 #                * Add a function to get all data of the current active trial (combined all studies).
 #                * Add a function to get a list of studies where a given germplasm has been used.
-#
-# To-do:
-#           * (in progress) Handle BrAPI pagination in a proper way in the `brapi_get_call()` function.
-#           * (in progress) Test BrAPI call for `get_study_info()` on BMS v14 (v13 bug).
-#           * (in progress) Test BrAPI call for `get_germplasm_list()` on BMS v14.
-#           * (in progress) Finalize `get_germplasm_data()` function by join location info.
+#                * Add a function to get a specific germplasm data from all program trials.
+#                * Handle BrAPI pagination in a proper way.
 #
 # License:  GPLv3
 
@@ -31,6 +27,8 @@ if (!require(httr)) install.packages("httr")
 if (!require(tcltk)) install.packages("tcltk")
 if (!require(jsonlite)) install.packages("jsonlite")
 if (!require(dplyr)) install.packages("dplyr")
+if (!require(plyr)) install.packages("plyr")
+if (!require(data.table)) install.packages("data.table")
 
 # Configure BMS server settings
 qbms_config <- list(server = "localhost")
@@ -54,37 +52,26 @@ qbms_state <- list(token = NULL)
 #' care of pagination, authintication, encoding, compress, decode JSON response, etc.
 #' 
 #' @param call_url BrAPI URL to call in GET method
+#' @param page     Page number to retrieve in case of multi paged results (default is 0)
+#' @param nested   If FLASE, then retrived JSON data will be flatten (default is TRUE)
 #' @return result object returned by JSON API response
 #' @author K. Al-Shamaa, \email{k.el-shamaa@cgiar.org}
 
-brapi_get_call <- function(call_url){
+brapi_get_call <- function(call_url, page = 0, nested = TRUE){
   separator <- if (grepl("\\?", call_url)) "&" else "?"
-  full_url  <- paste0(call_url, separator, "page=0&pageSize=", qbms_config$page_size)
+  full_url  <- paste0(call_url, separator, "page=", page, "&pageSize=", qbms_config$page_size)
 
   auth_code <- paste0("Bearer ", qbms_state$token)
   headers   <- c("Authorization" = auth_code, "Accept-Encoding" = "gzip, deflate")
 
   response  <- GET(URLencode(full_url), add_headers(headers))
 
-  result_object <- fromJSON(content(response, as = "text"))
+  result_object <- fromJSON(content(response, as = "text"), flatten = !nested)
   result_info   <- result_object$result
   
-  if (result_object$metadata$pagination$totalPages > 1 && is.null(result_object$errors)) {
-    last_page <- result_object$metadata$pagination$totalPages - 1
+  qbms_state$total_pages <<- result_object$metadata$pagination$totalPages
+  qbms_state$errors      <<- result_object$errors
 
-    pb <- txtProgressBar(min = 1, max = last_page, style = 3)
-    
-    for (n in 1:last_page) {
-      full_url <- paste0(call_url, separator, "page=", n, "&pageSize=", qbms_config$page_size)
-      
-      # Code to aggregate the response from several pages in one result object
-
-      setTxtProgressBar(pb, n)
-    }
-    
-    close(pb)
-  }
-  
   return(result_info)
 }
 
@@ -281,10 +268,18 @@ set_program <- function(program_name) {
 get_program_trials <- function() {
   call_url <- paste0(qbms_config$base_url, "/", qbms_config$crop, "/brapi/v1/trials")
   
-  bms_crop_trials <- brapi_get_call(call_url)
+  bms_crop_trials <- brapi_get_call(call_url, 0, FALSE)
   
   bms_program_trials <- subset(bms_crop_trials$data, programDbId == qbms_state$program_db_id)
-
+  
+  if (qbms_state$total_pages > 1 && is.null(qbms_state$errors)) {
+    last_page <- qbms_state$total_pages - 1
+    for (n in 1:last_page) {
+      bms_crop_trials    <- brapi_get_call(call_url, n, FALSE)
+      bms_program_trials <- rbind.fill(bms_program_trials, subset(bms_crop_trials$data, programDbId == qbms_state$program_db_id))
+    }
+  }
+  
   return(bms_program_trials)  
 }
 
@@ -375,12 +370,29 @@ list_studies <- function() {
   bms_trials <- get_program_trials()
   
   trial_row <- which(bms_trials$trialDbId == qbms_state$trial_db_id)
-  
+
   studies <- bms_trials[trial_row, c("studies")][[1]]$locationName
-  
+
   return(studies)
 }
 
+
+list_all_studies <- function() {
+  if (is.null(qbms_state$program_db_id)) {
+    stop("No breeding program has been selected yet! You have to set your breeding program first using the `set_program()` function")
+  }
+  
+  bms_trials <- get_program_trials()
+  
+  studies <- bms_trials[trial_row, c("studies")][[1]]$locationName
+  
+  crop_url <- paste0(qbms_config$base_url, "/", qbms_config$crop, "/brapi/v1")
+  call_url <- paste0(crop_url, "/studies/", qbms_state$study_db_id)
+  
+  study_info <- brapi_get_call(call_url)
+  study_info <- as.data.frame(do.call(c, unlist(study_info, recursive=FALSE)))
+  return(studies)
+}
 
 #' Set the current active study by location name
 #' 
@@ -486,6 +498,14 @@ get_germplasm_list <- function() {
   germplasms     <- brapi_get_call(call_url)
   germplasm_list <- as.data.frame(germplasms$data)
   
+  if (qbms_state$total_pages > 1 && is.null(qbms_state$errors)) {
+    last_page <- qbms_state$total_pages - 1
+    for (n in 1:last_page) {
+      germplasms     <- brapi_get_call(call_url, n)
+      germplasm_list <- rbind.fill(germplasm_list, as.data.frame(germplasms$data))
+    }
+  }
+  
   return(germplasm_list)
 }
 
@@ -548,6 +568,75 @@ get_trial_obs_ontology <- function() {
 }
 
 
+#' Get the list of locations information of the current selected crop
+#' 
+#' @description
+#' This function will retrieve the locations information of the current active crop
+#' as configured in the internal state object using `set_crop()` function.
+#' 
+#' @return a data frame of the locations information
+#' @author K. Al-Shamaa, \email{k.el-shamaa@cgiar.org}
+#' @seealso [login_bms()], [set_crop()]
+
+get_crop_locations <- function() {
+  if (is.null(qbms_config$crop)) {
+    stop("No crop has been selected yet! You have to set your crop first using the `set_crop()` function")
+  }
+  
+  call_url  <- paste0(qbms_config$base_url, "/", qbms_config$crop, "/brapi/v1/locations")
+  locations <- brapi_get_call(call_url, 0, FALSE)
+  
+  location_list <- as.data.frame(locations$data)
+
+  if (qbms_state$total_pages > 1 && is.null(qbms_state$errors)) {
+    last_page <- qbms_state$total_pages - 1
+    for (n in 1:last_page) {
+      locations     <- brapi_get_call(call_url, n, FALSE)
+      location_list <- rbind.fill(location_list, as.data.frame(locations$data))
+    }
+  }
+  
+  return(location_list)
+}
+
+#' Get the list of trials studies locations information of the current selected program
+#' 
+#' @description
+#' This function will retrieve all environments/locations information of the trials studies in the
+#' current active program as configured in the internal state object using `set_program()` function.
+#' 
+#' @return a data frame of locations information for each study in the program trials
+#' @author K. Al-Shamaa, \email{k.el-shamaa@cgiar.org}
+#' @seealso [login_bms()], [set_crop()], [set_program()]
+
+get_program_studies <- function() {
+  if (is.null(qbms_state$program_db_id)) {
+    stop("No breeding program has been selected yet! You have to set your breeding program first using the `set_program()` function")
+  }
+  
+  all_trials <- get_program_trials()
+  program_trials <- subset(all_trials, programDbId == qbms_state$program_db_id)
+  
+  for (row in 1:nrow(program_trials)) {
+    trial <- program_trials[row, 1:5]
+    trial_studies <- rbindlist(program_trials[row, "studies"])
+    if (nrow(trial_studies) > 0) {
+      if (row == 1) {
+        studies <- cbind(trial, trial_studies, row.names = NULL)
+      } else {
+        studies <- rbind(studies, cbind(trial, trial_studies, row.names = NULL))
+      } 
+    }
+  }
+  
+  crop_locations <- get_crop_locations()
+  
+  studies <- merge(studies, crop_locations, by = "locationDbId", all.x = TRUE, all.y = FALSE)
+  
+  return(studies)
+}
+
+
 #' Get the observations data of a given germplasm name
 #' 
 #' @description
@@ -562,23 +651,23 @@ get_trial_obs_ontology <- function() {
 get_germplasm_data <- function(germplasm_name) {
   crop_url <- paste0(qbms_config$base_url, "/", qbms_config$crop, "/brapi/v1")
   call_url <- paste0(crop_url, "/germplasm-search?germplasmName=", germplasm_name)
-
+  
   germplasm_db_id <- brapi_get_call(call_url)$data$germplasmDbId
-
+  
   # https://github.com/plantbreeding/API/blob/V1.2/Specification/Phenotypes/PhenotypesSearch_POST.md
   # Note 1: It does not work with germplasm name (BrAPI specifications): e.g. {"germplasmDbIds": ["ILC 3279"]}
   # Note 2: Return "Invalid request body" if we search for one germplasm_db_id!
-
+  
   call_url  <- paste0(crop_url, "/phenotypes-search")
   call_body <- list(germplasmDbIds = c(germplasm_db_id,""), observationLevel = "PLOT")
   auth_code <- paste0("Bearer ", qbms_state$token)
-
+  
   response <- POST(call_url, body=call_body, encode="json", add_headers(c("Authorization" = auth_code, "Accept-Encoding" = "gzip, deflate")))
   
   results <- content(response)$result$data
   
   flatten_results <- fromJSON(toJSON(results), flatten = TRUE)
-
+  
   # unlist nested list with id
   unlisted_observations <- rbindlist(flatten_results$observations, fill = TRUE, idcol = "id")
   
@@ -592,9 +681,18 @@ get_germplasm_data <- function(germplasm_name) {
   flatten_results$observations <- NULL
   flatten_results$id <- NULL
   
-  # we still need to filter out unnecessary columns, 
-  # extract locations info. using get_study_info function, 
-  # and then rejoin that info. to this master observation table 
+  # we still need to filter out unnecessary columns
+  results_df <- data.frame(matrix(nrow=dim(flatten_results)[1], ncol=dim(flatten_results)[2]))
+  colnames(results_df) <- colnames(flatten_results)
+  
+  for(i in 1:ncol(flatten_results)){
+    temp <- flatten_results[,i]
+    temp[sapply(temp, is.null)] <- NA
+    results_df[,i] <- unlist(temp)
+  }
 
-  return(flatten_results)
+  crop_locations <- get_crop_locations()
+  results_df <- merge(results_df, crop_locations, by.x = "studyLocationDbId", by.y = "locationDbId", all.x = TRUE)
+  
+  return(results_df)
 }
