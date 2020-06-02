@@ -26,8 +26,8 @@
 if (!require(httr)) install.packages("httr")
 if (!require(tcltk)) install.packages("tcltk")
 if (!require(jsonlite)) install.packages("jsonlite")
-if (!require(dplyr)) install.packages("dplyr")
 if (!require(plyr)) install.packages("plyr")
+if (!require(dplyr)) install.packages("dplyr")
 if (!require(data.table)) install.packages("data.table")
 
 # Configure BMS server settings
