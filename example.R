@@ -47,7 +47,7 @@ ontology <- get_trial_obs_ontology()
 list_studies()
 
 # select a specific environment/location dataset
-set_study("FLRP")
+set_study("CIDTN-2016 Environment Number 1")
 
 # retrieve general information, data, and germplasm list of the selected environment/location
 info <- get_study_info()

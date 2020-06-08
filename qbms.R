@@ -20,6 +20,12 @@
 #                * Add a function to get a specific germplasm data from all program trials.
 #                * Handle BrAPI pagination in a proper way.
 #
+#           v0.3.1 - 9 Jun 2020
+#                * Fix the "get_trial_data" function bug when you have more than one study in the same location. 
+#                * Function "list_studies" returns studyName also, and function "set_study" input is studyName now.
+#                * Simplify the "get_germplasm_list" function output by getting rid of nested lists.
+#                * Deprecate the "list_all_studies" function in favor of "get_program_studies" function.
+#
 # License:  GPLv3
 
 # Load/install required packages
@@ -358,7 +364,7 @@ set_trial <- function(trial_name) {
 #' This function will retrieve the studies list from the current active trial 
 #' as configured in the internal state object using `set_trial()` function.
 #' 
-#' @return a list of study location names
+#' @return a list of study and location names
 #' @author K. Al-Shamaa, \email{k.el-shamaa@cgiar.org}
 #' @seealso [login_bms()], [set_crop()], [set_program()], [set_trial()]
 
@@ -371,44 +377,27 @@ list_studies <- function() {
   
   trial_row <- which(bms_trials$trialDbId == qbms_state$trial_db_id)
 
-  studies <- bms_trials[trial_row, c("studies")][[1]]$locationName
+  studies <- bms_trials[trial_row, c("studies")][[1]][,c("studyName", "locationName")]
 
   return(studies)
 }
 
-
-list_all_studies <- function() {
-  if (is.null(qbms_state$program_db_id)) {
-    stop("No breeding program has been selected yet! You have to set your breeding program first using the `set_program()` function")
-  }
-  
-  bms_trials <- get_program_trials()
-  
-  studies <- bms_trials[trial_row, c("studies")][[1]]$locationName
-  
-  crop_url <- paste0(qbms_config$base_url, "/", qbms_config$crop, "/brapi/v1")
-  call_url <- paste0(crop_url, "/studies/", qbms_state$study_db_id)
-  
-  study_info <- brapi_get_call(call_url)
-  study_info <- as.data.frame(do.call(c, unlist(study_info, recursive=FALSE)))
-  return(studies)
-}
 
 #' Set the current active study by location name
 #' 
 #' @description
 #' This function will update the current active study in the internal state 
 #' object using the studyDbId retrieved from BMS which is associated to the 
-#' given location_name parameter.
+#' given study_name parameter.
 #' 
-#' @param location_name the name of the location
+#' @param study_name the name of the study
 #' @author K. Al-Shamaa, \email{k.el-shamaa@cgiar.org}
 #' @seealso [login_bms()], [set_crop()], [set_program()], [set_trial()], [list_studies()]
 
-set_study <- function(location_name) {
+set_study <- function(study_name) {
   valid_studies <- list_studies()
   
-  if (!location_name %in% valid_studies) {
+  if (!study_name %in% valid_studies$studyName) {
     stop("Your location name is not exists in this trial! You may use the `list_studies()` function to check the available study location names")
   }
   
@@ -418,7 +407,7 @@ set_study <- function(location_name) {
   
   bms_studies <- bms_trials[trial_row, c("studies")][[1]]
   
-  study_row <- which(bms_studies$locationName == location_name)
+  study_row <- which(bms_studies$studyName == study_name)
   
   qbms_state$study_db_id <<- as.character(bms_studies[study_row, "studyDbId"])
 }
@@ -506,6 +495,8 @@ get_germplasm_list <- function() {
     }
   }
   
+  germplasm_list[,c("synonyms","typeOfGermplasmStorageCode","taxonIds","donors")] <- list(NULL)
+  
   return(germplasm_list)
 }
 
@@ -525,7 +516,7 @@ get_trial_data <- function() {
   trial_data <- data.frame()
   env <- list_studies()
   
-  for (i in env) {
+  for (i in env$studyName) {
     set_study(i)
     study_data <- get_study_data()
     trial_data <- rbind(trial_data, study_data)
@@ -546,7 +537,7 @@ get_trial_data <- function() {
 #' @seealso [login_bms()], [set_crop()], [set_program()], [set_trial()]
 
 get_trial_obs_ontology <- function() {
-  set_study(list_studies()[1])
+  set_study(list_studies()[1, "studyName"])
   
   crop_url <- paste0(qbms_config$base_url, "/", qbms_config$crop, "/brapi/v1")
   call_url <- paste0(crop_url, "/studies/", qbms_state$study_db_id, "/table")
