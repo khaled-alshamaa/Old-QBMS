@@ -8,11 +8,13 @@
 #           v0.4 -  3 Jul 2020 - R package version at GitHub
 # License:  GPLv3
 
+# install the package from GitHub
 library(devtools)
-install_github("khaled-alshamaa/QBMS");
+Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS="true")
+install_github("khaled-alshamaa/QBMS")
 
 # load QBMS library
-library(qbms)
+library(QBMS)
 
 # config your BMS connection
 set_qbms_config("bms.icarda.org", 18443, "https://")
