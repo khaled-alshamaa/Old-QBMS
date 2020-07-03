@@ -4,19 +4,18 @@
 # Version:  0.3
 # Revision: v0.1 - 24 Jul 2019 - initial version
 #           v0.2 - 20 Aug 2019 - update function calls to reflect the new names
-#           v0.3 -  2 Jun 2020 - Introduce new functionalities of MET, germplasm observations, and program studies
+#           v0.3 -  2 Jun 2020 - introduce new functionalities of MET, germplasm observations, and program studies
+#           v0.4 -  3 Jul 2020 - R package version at GitHub
 # License:  GPLv3
 
-# include and load required libraries
-source("qbms.R")
+library(devtools)
+install_github("khaled-alshamaa/QBMS");
+
+# load QBMS library
+library(qbms)
 
 # config your BMS connection
-qbms_config$server <- "bms.icarda.org"
-
-# if you are not connecting BMS server using SSL layer,
-# then comment the following two lines 
-qbms_config$protocol <- "https://"
-qbms_config$port <- 18443
+set_qbms_config("bms.icarda.org", 18443, "https://")
 
 # login using your BMS account (interactive mode)
 # You can pass BMS username and password as parameters (batch mode)
