@@ -1,5 +1,5 @@
 # QBMS
-R package to Query [Breeding Management System](https://bmspro.io/) database (using API calls) in favor of scientists/researchers as a targeted end users who want to retrieve their experiments data directly into R statistical analyzing environment.
+R package to Query [Breeding Management System](https://bmspro.io/) database (using API calls) in favor of scientists/researchers as targeted end users who want to retrieve their experiments data directly into R statistical analyzing environment.
 
 ```r
 # Name:     example.R
@@ -22,51 +22,52 @@ R package to Query [Breeding Management System](https://bmspro.io/) database (us
 library(QBMS)
 
 # config your BMS connection
-set_qbms_config("bms.icarda.org", 18443, "https://")
+set_qbms_config("bms.example.com", 443, "https://")
 
 # login using your BMS account (interactive mode)
-# You can pass BMS username and password as parameters (batch mode)
+# or pass your BMS username and password as parameters (batch mode)
 login_bms()
 
 # list supported crops in the bms server
 list_crops()
 
+# select a crop by name
 set_crop("Tutorial1")
 
-# list existing breeding programs
+# list all breeding programs in the selected crop
 list_programs()
 
 # select a breeding program by name
 set_program("Training Breeding Program")
 
-# list all studies/trials in the selected program
+# list all studies/trials in the selected program (optional, filter by year)
 list_trials()
 list_trials(2017)
 
 # select a specific study/trial by name
 set_trial("CIDTN-2016")
 
-# get observation variable ontology
+# get observation variable ontology in the selected study/trial
 ontology <- get_trial_obs_ontology()
 
 # list all environments/locations information in the selected study/trial
 list_studies()
 
-# select a specific environment/location dataset
+# select a specific environment/location by name
 set_study("CIDTN-2016 Environment Number 1")
 
-# retrieve general information, data, and germplasm list of the selected environment/location
-info <- get_study_info()
+# retrieve data, general information, and germplasm list of the selected environment/location
 data <- get_study_data()
+info <- get_study_info()
 germplasm <- get_germplasm_list()
 
-# retrive multi-environment trial data
+# retrieve multi-environment trial data of the selected study/trial
 MET <- get_trial_data()
 
-# retrive observations data of a given germplasm aggregated from all trials
+# retrieve observations data of given germplasm aggregated from all trials in the selected program
 germplasm_observations <- get_germplasm_data("FLIP10-3C")
 
-# retrive all environments/locations information in the selected program studies/trials
+# retrieve all environments/locations information in the selected program
 program_studies <- get_program_studies()
 
 ```
