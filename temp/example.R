@@ -9,9 +9,9 @@
 # License:  GPLv3
 
 # install the package from GitHub
-library(devtools)
-Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS="true")
-install_github("khaled-alshamaa/QBMS")
+# library(devtools)
+# Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS="true")
+# install_github("khaled-alshamaa/QBMS")
 
 # load QBMS library
 library(QBMS)

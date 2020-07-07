@@ -15,7 +15,7 @@ LazyData: FALSE
 RoxygenNote: 7.1.1
 Imports:
 	utils,
-	httr,
+	httr (>= 1.4.1),
 	tcltk,
 	jsonlite,
 	plyr,
