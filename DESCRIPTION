@@ -14,10 +14,10 @@ BugReports: https://github.com/khaled-alshamaa/QBMS/issues
 LazyData: FALSE
 RoxygenNote: 7.1.1
 Imports:
-	utils,
+	utils (>= 3.6.1),
 	httr (>= 1.4.1),
-	tcltk,
-	jsonlite,
-	plyr,
-	dplyr,
-	data.table
+	tcltk (>= 3.6.1),
+	jsonlite (>= 1.7.0),
+	plyr (>= 1.4.2),
+	dplyr (>= 1.0.0),
+	data.table (>= 1.12.8)
