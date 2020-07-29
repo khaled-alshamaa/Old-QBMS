@@ -1,6 +1,13 @@
 # QBMS
-R package to Query [Breeding Management System](https://bmspro.io/) database (using API calls) in favor of scientists/researchers as targeted end users who want to retrieve their experiments data directly into R statistical analyzing environment.
+R package to Query the [Breeding Management System](https://bmspro.io/) database (using [BrAPI](https://brapi.org/) calls) in favor of scientists/researchers as targeted end-users who want to retrieve their experiments data directly into R statistical analyzing environment.
 
+## Breeding Management System
+Breeding Management System (BMS) is an information management system developed by the Integrated Breeding Platform to help breeders manage the breeding process, from programme planning to decision-making. The BMS is customizable for most crop breeding programs, and comes pre-loaded with curated ontology terms for many crops (bean, cassava, chickpea, cowpea, groundnut, maize, rice, sorghum, soybean, wheat, and others). The BMS is available as a cloud application, which can be installed on local or remote servers and accessed by multiple users.
+
+## BrAPI
+The Breeding API (BrAPI) project is an effort to enable interoperability among plant breeding databases. BrAPI is a standardized RESTful web service API specification for communicating plant breeding data. This community driven standard is free to be used by anyone interested in plant breeding data management.
+
+## Example
 ```r
 # Name:     example.R
 # Purpose:  An example of the usage scenario to query and retrieve data from BMS using this QBMS R package
