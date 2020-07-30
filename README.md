@@ -1,5 +1,10 @@
 # QBMS
+<!-- https://shields.io/ -->
 R package to Query the [Breeding Management System](https://bmspro.io/) database (using [BrAPI](https://brapi.org/) calls) in favor of scientists/researchers as targeted end-users who want to retrieve their experiments data directly into R statistical analyzing environment.
+
+> ___Package Author and Maintainer:__ Khaled Al-Shamaa <k.el-shamaa (at) cgiar (dot) org>_
+>
+> ___Package Copyright Holder:__ [International Center for Agricultural Research in the Dry Areas (ICARDA)](https://www.icarda.org/)_
 
 ## Breeding Management System
 Breeding Management System (BMS) is an information management system developed by the Integrated Breeding Platform to help breeders manage the breeding process, from programme planning to decision-making. The BMS is customizable for most crop breeding programs, and comes pre-loaded with curated ontology terms for many crops (bean, cassava, chickpea, cowpea, groundnut, maize, rice, sorghum, soybean, wheat, and others). The BMS is available as a cloud application, which can be installed on local or remote servers and accessed by multiple users.
@@ -7,25 +12,15 @@ Breeding Management System (BMS) is an information management system developed b
 ## BrAPI
 The Breeding API (BrAPI) project is an effort to enable interoperability among plant breeding databases. BrAPI is a standardized RESTful web service API specification for communicating plant breeding data. This community driven standard is free to be used by anyone interested in plant breeding data management.
 
-## Example
+## _Install_
 ```r
-# Name:     example.R
-# Purpose:  An example of the usage scenario to query and retrieve data from BMS using this QBMS R package
-# Author:   Khaled Al-Shamaa <k.el-shamaa@cgiar.org>
-# License:  GPLv3
-# Version:  0.4
-#
-# Revision: v0.1 - 24 Jul 2019 - initial version
-#           v0.2 - 20 Aug 2019 - update function calls to reflect the new names
-#           v0.3 -  2 Jun 2020 - introduce new functionalities of MET, germplasm observations, and program studies
-#           v0.4 -  3 Jul 2020 - R package version at GitHub
+install.packages("remotes")
+remotes::install_github("khaled-alshamaa/QBMS")
+```
 
-# install the package from GitHub
-# library(devtools)
-# Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS="true")
-# install_github("khaled-alshamaa/QBMS")
-
-# load QBMS library
+## _Example_
+```r
+# load the QBMS library
 library(QBMS)
 
 # config your BMS connection
