@@ -14,8 +14,10 @@ The Breeding API (BrAPI) project is an effort to enable interoperability among p
 
 ## _Install_
 ```r
-install.packages("remotes")
-remotes::install_github("khaled-alshamaa/QBMS")
+install.packages("devtools")
+Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS="true")
+
+devtools::install_github("khaled-alshamaa/QBMS")
 ```
 
 ## _Example_
