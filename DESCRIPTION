@@ -5,6 +5,8 @@ Date: 2020-07-01
 Title: Query Breeding Management System (BMS)
 Authors@R: c(
   person("Khaled", "Al-Shamaa", role = c("aut", "cre"), email = "k.el-shamaa@cgiar.org"),
+  person("Mariano Omar", "Crimi", role = c("ctb"), email = "m.crimi@cgiar.org"),
+  person("Zakaria", "Kehel", role = c("ctb"), email = "z.kehel@cgiar.org"),
   person("International Center for Agricultural Research in the Dry Areas (ICARDA)", role = c("cph"))
   )
 Author: Khaled Al-Shamaa [aut, cre]
