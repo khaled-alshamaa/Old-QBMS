@@ -4,6 +4,10 @@ R package to Query the [Breeding Management System](https://bmspro.io/) database
 
 > ___Package Author and Maintainer:__ Khaled Al-Shamaa <k.el-shamaa (at) cgiar (dot) org>_
 >
+> ___Package Contributor:__ Mariano Omar CRIMI <m.crimi (at) cgiar (dot) org>_
+>
+> ___Package Contributor:__ Zakaria Kehel <z.kehel (at) cgiar (dot) org>_
+>
 > ___Package Copyright Holder:__ [International Center for Agricultural Research in the Dry Areas (ICARDA)](https://www.icarda.org/)_
 
 ## Breeding Management System
